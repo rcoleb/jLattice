@@ -2,14 +2,14 @@ package com.fhs.niosrv.impl.motd;
 
 import java.nio.charset.Charset;
 
-import com.fhs.niosrv.Message;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.rsc.DestructionException;
+import com.fhs.jlattice.rsc.InitializationException;
+import com.fhs.jlattice.rsc.UndefinedResourceException;
+import com.fhs.jlattice.you.impl.MessageHandler;
+import com.fhs.jlattice.you.impl.Resource;
+import com.fhs.jlattice.you.impl.Response;
 import com.fhs.niosrv.impl.resp.StringResponse;
-import com.fhs.niosrv.rsc.DestructionException;
-import com.fhs.niosrv.rsc.InitializationException;
-import com.fhs.niosrv.rsc.UndefinedResourceException;
-import com.fhs.niosrv.you.impl.MessageHandler;
-import com.fhs.niosrv.you.impl.Resource;
-import com.fhs.niosrv.you.impl.Response;
 
 /**
  * Message of the Day server!

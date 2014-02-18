@@ -1,4 +1,4 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fhs.niosrv.Message;
-import com.fhs.niosrv.NIOServer;
-import com.fhs.niosrv.run.KeyAttachment;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.LatticeServer;
+import com.fhs.jlattice.run.KeyAttachment;
 
 /**
 * Runnable sub-class; Read queue consumer<br />
@@ -25,7 +25,7 @@ public final class ReadRunnable implements Runnable {
     /**
      * Containing NIOServer
      */
-    private NIOServer myServer;
+    private LatticeServer myServer;
     
     Logger logger = LogManager.getLogger();
 
@@ -35,7 +35,7 @@ public final class ReadRunnable implements Runnable {
      * 
      * @param server
      */
-    public ReadRunnable(NIOServer server) { this.myServer = server; }
+    public ReadRunnable(LatticeServer server) { this.myServer = server; }
 
     @Override
     public void run() {

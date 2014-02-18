@@ -1,4 +1,4 @@
-package com.fhs.niosrv;
+package com.fhs.jlattice;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -12,7 +12,7 @@ public class Message {
     /**
      * 
      */
-    public NIOServer server;
+    public LatticeServer server;
     /**
      * 
      */

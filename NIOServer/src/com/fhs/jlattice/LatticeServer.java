@@ -1,4 +1,4 @@
-package com.fhs.niosrv;
+package com.fhs.jlattice;
 
 import java.awt.EventQueue;
 import java.io.IOException;
@@ -14,15 +14,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fhs.jlattice.rsc.Resourcer;
+import com.fhs.jlattice.run.AsyncWriteRunnable;
+import com.fhs.jlattice.run.HandlerRunnable;
+import com.fhs.jlattice.run.KeyAttachment;
+import com.fhs.jlattice.run.ReadRunnable;
+import com.fhs.jlattice.run.SelectorRunnable;
+import com.fhs.jlattice.you.impl.ExceptionHandler;
+import com.fhs.jlattice.you.impl.MessageHandler;
 import com.fhs.niosrv.impl.hdlr.EchoMessageHandler;
-import com.fhs.niosrv.rsc.Resourcer;
-import com.fhs.niosrv.run.AsyncWriteRunnable;
-import com.fhs.niosrv.run.HandlerRunnable;
-import com.fhs.niosrv.run.KeyAttachment;
-import com.fhs.niosrv.run.ReadRunnable;
-import com.fhs.niosrv.run.SelectorRunnable;
-import com.fhs.niosrv.you.impl.ExceptionHandler;
-import com.fhs.niosrv.you.impl.MessageHandler;
 
 /**
  * Non-Blocking <code>java.nio</code>nio Server Framework
@@ -32,7 +32,7 @@ import com.fhs.niosrv.you.impl.MessageHandler;
  * TODO MAJOR Add custom uncaughtExceptionHandler to system
  *
  */
-public class NIOServer implements Runnable {
+public class LatticeServer implements Runnable {
     /** Default port number */
     private static final int DEF_PORT = 12380;
     /** Default read buffer size */
@@ -108,7 +108,7 @@ public class NIOServer implements Runnable {
     /**
      * Server GUI 
      */
-    private NIOSGUI gui;
+    private LatticeGUI gui;
     
     /**
      * Logging object (Log4j2)
@@ -118,7 +118,7 @@ public class NIOServer implements Runnable {
     /**
      * Constructor
      */
-    public NIOServer() { /**/ }
+    public LatticeServer() { /**/ }
     
     /**
      * @return run the main select loop
@@ -462,7 +462,7 @@ public class NIOServer implements Runnable {
     /**
      * @return the attached GUI console for this server.  May be null if <code>enableConsole</code> hasn't been called.
      */
-    public NIOSGUI getGUI() {
+    public LatticeGUI getGUI() {
     	return this.gui;
     }
     
@@ -477,8 +477,8 @@ public class NIOServer implements Runnable {
 	 * Create and show the attached GUI console for this server.
 	 */
 	public void enableConsole() {
-		final NIOServer nios = this;
-		nios.gui = new NIOSGUI();
+		final LatticeServer nios = this;
+		nios.gui = new LatticeGUI();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				nios.getGUI().attachServer(nios);

@@ -1,4 +1,4 @@
-package com.fhs.niosrv.rsc;
+package com.fhs.jlattice.rsc;
 
 /**
  * @author Ben.Cole

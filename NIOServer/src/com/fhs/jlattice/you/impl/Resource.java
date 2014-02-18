@@ -1,8 +1,8 @@
-package com.fhs.niosrv.you.impl;
+package com.fhs.jlattice.you.impl;
 
-import com.fhs.niosrv.NIOServer;
-import com.fhs.niosrv.rsc.DestructionException;
-import com.fhs.niosrv.rsc.InitializationException;
+import com.fhs.jlattice.LatticeServer;
+import com.fhs.jlattice.rsc.DestructionException;
+import com.fhs.jlattice.rsc.InitializationException;
 
 
 /**
@@ -26,7 +26,7 @@ public interface Resource {
      * 
      * @throws InitializationException
      */
-    public void init(NIOServer server) throws InitializationException;
+    public void init(LatticeServer server) throws InitializationException;
     /**
     * Initialize this resource with the given arguments.  This should be a no-op if already called.
     * @param server 
@@ -34,12 +34,12 @@ public interface Resource {
     * 
     * @throws InitializationException
     */
-    public void init(NIOServer server, String[] args) throws InitializationException;
+    public void init(LatticeServer server, String[] args) throws InitializationException;
     /**
      * Destroy this resource.  May not be required if the resource is non-consumable.
      * @param server 
      * 
      * @throws DestructionException
      */
-    public void destroy(NIOServer server) throws DestructionException;
+    public void destroy(LatticeServer server) throws DestructionException;
 }

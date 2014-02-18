@@ -1,10 +1,10 @@
-package com.fhs.niosrv.rsc;
+package com.fhs.jlattice.rsc;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.fhs.niosrv.NIOServer;
-import com.fhs.niosrv.you.impl.Resource;
+import com.fhs.jlattice.LatticeServer;
+import com.fhs.jlattice.you.impl.Resource;
 
 
 /**
@@ -35,12 +35,12 @@ public class Resourcer {
     /**
      * 
      */
-    private NIOServer server;
+    private LatticeServer server;
     
     /**
      * @param myServe
      */
-    public Resourcer(NIOServer myServe) {
+    public Resourcer(LatticeServer myServe) {
         this.server = myServe;
         this.rscMap = new ConcurrentHashMap<>();
         this.rscs = new ConcurrentHashMap<>();

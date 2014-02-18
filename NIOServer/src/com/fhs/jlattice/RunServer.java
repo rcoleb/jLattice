@@ -1,10 +1,10 @@
-package com.fhs.niosrv;
+package com.fhs.jlattice;
 
 import java.io.IOException;
 
 public class RunServer {
     public static void main(String args[]) throws IOException {
-        NIOServer serv= new NIOServer();
+        LatticeServer serv= new LatticeServer();
         // set exceptionhandler:
 //        serv.setExceptionHandler(new ExceptionHandler.DefaultExceptionHandlerImpl());
         // set messagehandler:

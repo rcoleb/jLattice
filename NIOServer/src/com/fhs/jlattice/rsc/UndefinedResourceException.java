@@ -1,6 +1,6 @@
-package com.fhs.niosrv.rsc;
+package com.fhs.jlattice.rsc;
 
-import com.fhs.niosrv.you.impl.Resource;
+import com.fhs.jlattice.you.impl.Resource;
 
 
 /**

@@ -1,9 +1,9 @@
 package com.fhs.niosrv.impl.hdlr;
 
-import com.fhs.niosrv.Message;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.you.impl.MessageHandler;
+import com.fhs.jlattice.you.impl.Response;
 import com.fhs.niosrv.impl.resp.StringResponse;
-import com.fhs.niosrv.you.impl.MessageHandler;
-import com.fhs.niosrv.you.impl.Response;
 
 /**
  * @author Ben.Cole

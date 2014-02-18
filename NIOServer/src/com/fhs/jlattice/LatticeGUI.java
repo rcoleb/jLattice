@@ -1,4 +1,4 @@
-package com.fhs.niosrv;
+package com.fhs.jlattice;
 
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -39,11 +39,11 @@ import java.awt.Color;
  * @author Ben
  *
  */
-public class NIOSGUI {
+public class LatticeGUI {
 
 	JFrame frame;
 	
-	NIOServer server;
+	LatticeServer server;
 	JTextField fieldPort;
 
 	JScrollPane scrollPane;
@@ -67,7 +67,7 @@ public class NIOSGUI {
 	/**
 	 * Create the application.
 	 */
-	public NIOSGUI() {
+	public LatticeGUI() {
 		initialize();
 	}
 	
@@ -77,21 +77,21 @@ public class NIOSGUI {
 			Runnable runn = new Runnable() {
 				@Override
 				public void run() {
-					if (NIOSGUI.this.server.isRunning()) return;
-			        NIOSGUI.this.btnClear.doClick();
+					if (LatticeGUI.this.server.isRunning()) return;
+			        LatticeGUI.this.btnClear.doClick();
 					// check if port field populated
-					String portStr = NIOSGUI.this.fieldPort.getText();
+					String portStr = LatticeGUI.this.fieldPort.getText();
 					if (portStr.length() == 0) {
 						// error
 					}
 					int port = Integer.parseInt(portStr);
-					NIOSGUI.this.server.init(port);
-					NIOSGUI.this.server.run();
+					LatticeGUI.this.server.init(port);
+					LatticeGUI.this.server.run();
 					
-					NIOSGUI.this.started();
+					LatticeGUI.this.started();
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -100,15 +100,15 @@ public class NIOSGUI {
 			Runnable runn = new Runnable() {
 				@Override
 				public void run() {
-					if (!NIOSGUI.this.server.isRunning()) {
-						NIOSGUI.this.stopped();
+					if (!LatticeGUI.this.server.isRunning()) {
+						LatticeGUI.this.stopped();
 						return;
 					}
-					NIOSGUI.this.server.stop();
-					NIOSGUI.this.stopped();
+					LatticeGUI.this.server.stop();
+					LatticeGUI.this.stopped();
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -117,12 +117,12 @@ public class NIOSGUI {
 			Runnable runn = new Runnable() {
 				@Override
 				public void run() {
-					StringBuilder appender = new StringBuilder(NIOSGUI.this.logConsole.getText());
+					StringBuilder appender = new StringBuilder(LatticeGUI.this.logConsole.getText());
 					appender.append("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-					NIOSGUI.this.logConsole.setText(appender.toString());
+					LatticeGUI.this.logConsole.setText(appender.toString());
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -138,7 +138,7 @@ public class NIOSGUI {
 					}
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -147,13 +147,13 @@ public class NIOSGUI {
 			Runnable runn = new Runnable() {
 				@Override
 				public void run() {
-					NIOSGUI.this.btnStop.doClick();
-					NIOSGUI.this.server.destroy();
-					NIOSGUI.this.frame.setVisible(false);
+					LatticeGUI.this.btnStop.doClick();
+					LatticeGUI.this.server.destroy();
+					LatticeGUI.this.frame.setVisible(false);
 					System.exit(0);
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -166,7 +166,7 @@ public class NIOSGUI {
 					System.exit(1);
 				}
 			};
-			NIOSGUI.this.offEDTRunner.execute(runn);
+			LatticeGUI.this.offEDTRunner.execute(runn);
 		}
 	};
 	
@@ -235,13 +235,13 @@ public class NIOSGUI {
 		this.frame.getContentPane().add(this.btnEmptyLogFile, "cell 3 0");
 	}
 	
-	protected void attachServer(final NIOServer nios) {
+	protected void attachServer(final LatticeServer nios) {
 		this.server = nios;
 		this.fieldPort.setText(String.valueOf(nios.getPort()));
 		if (nios.isRunning())  {
 			this.started();
 			final String lines = readLastLogLines();
-			NIOSGUI.this.logConsole.setText(lines);	        
+			LatticeGUI.this.logConsole.setText(lines);	        
 		}
 		
 		try {
@@ -257,7 +257,7 @@ public class NIOSGUI {
 				public void run() {
 					while(true) {
 						WatchKey myKey;
-						myKey = NIOSGUI.this.watcher.poll();
+						myKey = LatticeGUI.this.watcher.poll();
 						if (this.isRunning() || ((myKey != null && myKey.pollEvents().isEmpty()) && key.pollEvents().isEmpty()) ) {
 							Thread.yield();
 						}
@@ -352,7 +352,7 @@ public class NIOSGUI {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-			        NIOSGUI.this.logConsole.setText(NIOSGUI.this.logConsole.getText()+newLines);
+			        LatticeGUI.this.logConsole.setText(LatticeGUI.this.logConsole.getText()+newLines);
 				}
 			});
 		} catch (InvocationTargetException exc) {

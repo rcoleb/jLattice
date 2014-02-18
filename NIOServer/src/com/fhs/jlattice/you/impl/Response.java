@@ -1,4 +1,4 @@
-package com.fhs.niosrv.you.impl;
+package com.fhs.jlattice.you.impl;
 
 /**
  * @author Ben.Cole

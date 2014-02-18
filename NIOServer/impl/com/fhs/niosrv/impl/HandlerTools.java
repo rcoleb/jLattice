@@ -2,7 +2,7 @@ package com.fhs.niosrv.impl;
 
 import java.nio.charset.Charset;
 
-import com.fhs.niosrv.Message;
+import com.fhs.jlattice.Message;
 
 public final class HandlerTools {
 	/**

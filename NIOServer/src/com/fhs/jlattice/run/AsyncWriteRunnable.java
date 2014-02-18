@@ -1,4 +1,4 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,8 +11,8 @@ import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fhs.niosrv.Message;
-import com.fhs.niosrv.NIOServer;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.LatticeServer;
 
 /**
  * <strong>CAUTION: THIS CLASS IS UNTESTED. USE AT OWN RISK. TEST WITH LARGE MESSAGES AND SMALL WRITEBUFFER SIZES BEFORE DEPLOYING!</strong><br />
@@ -40,7 +40,7 @@ public final class AsyncWriteRunnable implements Runnable {
     /**
      * Containing NIOServer
      */
-    private NIOServer myServe;
+    private LatticeServer myServe;
     
     Logger logger = LogManager.getLogger();
     
@@ -50,7 +50,7 @@ public final class AsyncWriteRunnable implements Runnable {
      * 
      * @param server
      */
-    public AsyncWriteRunnable(NIOServer server) { this.myServe = server; }
+    public AsyncWriteRunnable(LatticeServer server) { this.myServe = server; }
 
     @Override
     public void run() {

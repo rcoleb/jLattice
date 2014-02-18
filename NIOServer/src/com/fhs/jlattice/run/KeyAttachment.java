@@ -1,6 +1,6 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
-import com.fhs.niosrv.you.impl.Response;
+import com.fhs.jlattice.you.impl.Response;
 
 /**
  * Context object for NIO selector key attachments.  Used to keep track of meta-data, such as connection details or a response

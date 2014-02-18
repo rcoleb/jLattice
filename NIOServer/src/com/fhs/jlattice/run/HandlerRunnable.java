@@ -1,4 +1,4 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -6,10 +6,10 @@ import java.nio.channels.SelectionKey;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fhs.niosrv.Message;
-import com.fhs.niosrv.NIOServer;
-import com.fhs.niosrv.you.impl.MessageHandler;
-import com.fhs.niosrv.you.impl.Response;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.LatticeServer;
+import com.fhs.jlattice.you.impl.MessageHandler;
+import com.fhs.jlattice.you.impl.Response;
 
 /**
  * @author Ben
@@ -19,7 +19,7 @@ public class HandlerRunnable implements Runnable {
     /**
      * Containing NIOServer
      */
-    private NIOServer myServer;
+    private LatticeServer myServer;
     
     Logger logger = LogManager.getLogger();
     
@@ -29,7 +29,7 @@ public class HandlerRunnable implements Runnable {
      * 
      * @param server
      */
-    public HandlerRunnable(NIOServer server) { this.myServer = server; }
+    public HandlerRunnable(LatticeServer server) { this.myServer = server; }
 
 	@Override
 	public void run() {

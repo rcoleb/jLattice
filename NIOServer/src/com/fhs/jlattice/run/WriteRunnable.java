@@ -1,4 +1,4 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -6,8 +6,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
-import com.fhs.niosrv.Message;
-import com.fhs.niosrv.NIOServer;
+import com.fhs.jlattice.Message;
+import com.fhs.jlattice.LatticeServer;
 
 /**
 * <code>Runnable</code> sub-class; Write queue consumer<br />
@@ -29,13 +29,13 @@ public final class WriteRunnable implements Runnable {
     /**
      * Containing NIOServer
      */
-    private NIOServer myServe;
+    private LatticeServer myServe;
 
     /**
      * 
      * @param server
      */
-    public WriteRunnable(NIOServer server) { this.myServe = server; }
+    public WriteRunnable(LatticeServer server) { this.myServe = server; }
 
     @Override
     public void run() {

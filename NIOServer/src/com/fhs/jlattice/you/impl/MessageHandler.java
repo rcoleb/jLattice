@@ -1,6 +1,6 @@
-package com.fhs.niosrv.you.impl;
+package com.fhs.jlattice.you.impl;
 
-import com.fhs.niosrv.Message;
+import com.fhs.jlattice.Message;
 
 /**
  * @author Ben.Cole

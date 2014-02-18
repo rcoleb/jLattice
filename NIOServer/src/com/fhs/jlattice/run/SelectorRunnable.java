@@ -1,4 +1,4 @@
-package com.fhs.niosrv.run;
+package com.fhs.jlattice.run;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -10,7 +10,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fhs.niosrv.NIOServer;
+import com.fhs.jlattice.LatticeServer;
 
 /**
  * @author Ben.Cole
@@ -20,14 +20,14 @@ public final class SelectorRunnable implements Runnable {
     /**
      * Containing NIOServer
      */
-    private NIOServer myServe;
+    private LatticeServer myServe;
     private Logger logger = LogManager.getLogger();
     private static final int SELECTOR_SLEEP = 3000; // 3 seconds
     /**
      * 
      * @param server
      */
-    public SelectorRunnable(NIOServer server) { this.myServe = server; }
+    public SelectorRunnable(LatticeServer server) { this.myServe = server; }
     
     /**
 	 * Warning suppressed because although we accept a new connection, we don't

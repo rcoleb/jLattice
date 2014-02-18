@@ -10,10 +10,10 @@ import java.util.Random;
 
 import javax.swing.JOptionPane;
 
-import com.fhs.niosrv.NIOServer;
-import com.fhs.niosrv.rsc.DestructionException;
-import com.fhs.niosrv.rsc.InitializationException;
-import com.fhs.niosrv.you.impl.Resource;
+import com.fhs.jlattice.LatticeServer;
+import com.fhs.jlattice.rsc.DestructionException;
+import com.fhs.jlattice.rsc.InitializationException;
+import com.fhs.jlattice.you.impl.Resource;
 
 /**
  * Resource for loading a Message-Of-The-Day file and providing Messages
@@ -40,19 +40,19 @@ public class MOTDResource implements Resource {
     }
     
     @Override
-    public void init(NIOServer server) throws InitializationException {
+    public void init(LatticeServer server) throws InitializationException {
         this.fileLoc = JOptionPane.showInputDialog("Please Enter MOTD File location:");
         loadStrings();
     }
     
     @Override
-    public void init(NIOServer server, String[] args) throws InitializationException {
+    public void init(LatticeServer server, String[] args) throws InitializationException {
     	this.fileLoc = args[0];
     	loadStrings();
     }
     
     @Override
-    public void destroy(NIOServer server) throws DestructionException {
+    public void destroy(LatticeServer server) throws DestructionException {
         this.motds = null;
     }
     

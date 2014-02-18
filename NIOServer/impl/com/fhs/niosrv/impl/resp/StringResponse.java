@@ -1,6 +1,6 @@
 package com.fhs.niosrv.impl.resp;
 
-import com.fhs.niosrv.you.impl.Response;
+import com.fhs.jlattice.you.impl.Response;
 
 /**
  * @author Ben.Cole
