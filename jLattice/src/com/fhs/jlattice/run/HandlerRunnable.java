@@ -16,24 +16,50 @@ import com.fhs.jlattice.you.impl.Response;
  *
  */
 public class HandlerRunnable implements Runnable {
+    
+    private static final int POLL_WAIT = 3000;
+    private static final Object MSG_LOCK = new Object();
+    
     /**
      * Containing NIOServer
      */
     private LatticeServer myServer;
     
-    Logger logger = LogManager.getLogger();
+    private MessageHandler handler;
     
-    private static final int POLL_WAIT = 3000;
-    private static final Object MSG_LOCK = new Object();
+    private volatile boolean killFlag = false;
+    private volatile boolean isDead = false;
+    
+    Logger logger = LogManager.getLogger();
     /**
      * 
      * @param server
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      */
-    public HandlerRunnable(LatticeServer server) { this.myServer = server; }
+    public HandlerRunnable(LatticeServer server) throws InstantiationException, IllegalAccessException { 
+    	this.myServer = server; 
+    	this.handler = server.getMessageHandlerClass().newInstance();
+	}
+    
+    /**
+     * Set this HandlerRunnable's internal kill-flag, allowing graceful shutdown
+     */
+    public void kill() {
+    	if (this.killFlag) return; 
+    	this.killFlag = true;
+    }
 
-	@Override
+    /**
+     * @return whether or not this handler is still processing it's run method
+     */
+    public boolean isDead() {
+    	return this.isDead;
+    }
+    
+    @Override
 	public void run() {
-        while(this.myServer.isRunning()) {
+        while(this.myServer.isRunning() && !this.killFlag) {
         	Message msg = null;
 			try {
 				// lock, so that we'll never peek, get scooped, and end up waiting forever for take()  
@@ -64,11 +90,10 @@ public class HandlerRunnable implements Runnable {
 				}
 				continue;
 			}
-			// TODO replace getting from server with local instance - this runnable will itself be pooled, not the individual handler instances
-			MessageHandler handler = this.myServer.getMessageHandler();
-	        Response<?> retObj = handler.messageRecieved(msg);
+	        
+			Response<?> retObj = this.handler.messageRecieved(msg);
 	        // TODO post-processing? [for that matter, what about pre-processing?]
-	        // TODO release handler instance/return to server
+	        
 	        this.logger.info("Message object processed by MessageHandler; response received for client " + ((KeyAttachment)msg.key.attachment()).remoteAddr);
 	        ((KeyAttachment)msg.key.attachment()).response = retObj;
 	        // re-register key for a WRITE operation and attach return object
@@ -83,6 +108,7 @@ public class HandlerRunnable implements Runnable {
 	            this.myServer.getExceptionHandler().handleClosedChannelException(this.myServer, oldKey, e);
 	        }
         }
+        this.isDead = true;
 	}
 
 }

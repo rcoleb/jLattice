@@ -12,5 +12,5 @@ public interface MessageHandler {
      * @return a proper response
      */
     public Response<?> messageRecieved(Message msg);
-    
+
 }

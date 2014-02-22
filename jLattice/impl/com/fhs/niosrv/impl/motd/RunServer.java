@@ -8,7 +8,7 @@ import com.fhs.jlattice.rsc.InitializationException;
 public class RunServer {
     public static void main(String args[]) throws IOException, InstantiationException, IllegalAccessException, InitializationException {
         LatticeServer serv= new LatticeServer();
-        serv.setMessageHandler(new MOTDMessageHandler());
+        serv.setMessageHandlerClass(MOTDMessageHandler.class);
         serv.getResources().defineResource("motd", MOTDResource.class, true);
         serv.init();
         serv.run();

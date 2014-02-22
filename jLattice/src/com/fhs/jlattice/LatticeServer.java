@@ -8,6 +8,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -44,10 +46,12 @@ public class LatticeServer implements Runnable {
     private ExceptionHandler excpHandler = new ExceptionHandler.DefaultExceptionHandlerImpl();
     /** Lock object for synchronizing ExceptionHandler access */
     private static final Object EXCP_LOCK = new Object();
-    /** MessageHandler */
-    private MessageHandler msgHandler = new EchoMessageHandler();
-    /** Lock object for synchronizing MessageHandler access */
-    private static final Object MSG_LOCK = new Object();
+    /**
+     * 
+     */
+    Class<? extends MessageHandler> handlerClass = EchoMessageHandler.class;
+    ArrayList<HandlerRunnable> handlerPool = new ArrayList<>();
+    private volatile int handlerPoolSize = 1;
     
     /** Selector */
     private Selector selector;
@@ -95,7 +99,11 @@ public class LatticeServer implements Runnable {
     /**
      * Thread for processing messages and sending them to be written
      */
-    private Thread hdlrThread;
+    private Map<HandlerRunnable, Thread> handlerThreads = new java.util.HashMap<>();
+    /**
+     * TODO handlerThread monitor thread - restarts dead threads, performs scaling, etc
+     */
+    private Thread handlerWrangler;
     /**
      * Thread for consuming write events and writing responses to connections
      */
@@ -193,16 +201,12 @@ public class LatticeServer implements Runnable {
         }
         return excp;
     }
-
+    
     /**
-     * @return an instance of MessageHandler
+     * @return the set message handler class
      */
-    public MessageHandler getMessageHandler() {
-        MessageHandler msg;
-        synchronized (MSG_LOCK) {
-            msg = this.msgHandler;
-        }
-        return msg;
+    public Class<? extends MessageHandler> getMessageHandlerClass() {
+    	return this.handlerClass;
     }
     
     /**
@@ -242,19 +246,49 @@ public class LatticeServer implements Runnable {
         }
     	this.logger.info("ExceptionHandler set to "  + exceptionHandler.getClass().getName());
     }
-
-    /** 
-     * TODO:
-     *  Instead of setting MessageHandler instance, set MessageHandler class and use Object pooling to retrieve instances
-     * @param messageHandler
+    
+    /**
+     * @param handlerClass class of custom MessageHandler object
      */
-    public void setMessageHandler(MessageHandler messageHandler) {
-        synchronized (MSG_LOCK) {
-            this.msgHandler = messageHandler;
-        }
-    	this.logger.info("MessageHandler set to " +  messageHandler.getClass().getName());
+    public void setMessageHandlerClass(Class<? extends MessageHandler> handlerClass) {
+    	this.handlerClass = handlerClass;
     }
-
+    
+    /**
+     * @param size Desired number of handler threads
+     */
+    public void setMessageHandlerPoolSize(int size) {
+    	this.handlerPoolSize = size;
+    	//this.scaleHandlers(size);
+    }
+    
+   /* 
+    private void scaleHandlers(int poolSz) {
+    	if (poolSz <= 0) return;
+    	if (this.handlerPool.size() == poolSz) return;
+    	if (this.handlerPool.size() > poolSz) {
+    		scaleDown(poolSz);
+    	} else {
+    		scaleUp(poolSz);
+    	}
+    }
+    
+    private void scaleDown(int poolSz) {
+    	int killCnt = this.handlerPool.size() - poolSz;
+    	for (int i = 0; i < killCnt; i++) {
+    		this.handlerPool.get(i).kill();
+    	}
+    	int deadCnt = 0;
+    	while (deadCnt < killCnt) {
+    		for (int i = this.handlerPool.size(); i > 0; i--) {
+    			if (this.handlerPool.get(i).isDead()) {
+    				this.handlerPool.remove(i);
+    				deadCnt++;
+    			}
+    		}
+    	}
+    }*/
+    
     /**
      * Same as <code>init(NIOServer.DEFAULT_PORT)</code><br />
      * No-op if already <code>init</code>-ed
@@ -311,18 +345,17 @@ public class LatticeServer implements Runnable {
      */
     @Override
     public synchronized void run() {
+    	System.out.println("run");
     	this.doMainLoop = true;
     	this.isRunning = true;
         this.logger.info("NIOServer start initiated...");
     	String runName = "NIOServer-readthread-"+this.myport;
-    	String hdlName = "NIOServer-handlerthread-"+this.myport;
     	String readName = "NIOServer-writethread-"+this.myport;
     	String writeName = "NIOServer-runthread-"+this.myport;
     	
         this.runThread = new Thread(new SelectorRunnable(this), runName);
         this.readThread = new Thread(new ReadRunnable(this), readName);
-        // TODO # of handler threads == number of handlers, curr => 1
-        this.hdlrThread = new Thread(new HandlerRunnable(this), hdlName);
+        setupHandlers();
         this.writeThread = new Thread(new AsyncWriteRunnable(this), writeName);
         this.logger.info("...threads created...");
         
@@ -331,10 +364,12 @@ public class LatticeServer implements Runnable {
         this.readThread.start();
         this.logger.info("...read thread initiated...");
         
-        this.hdlrThread.setName(hdlName);
-        this.hdlrThread.setDaemon(false);
-        this.hdlrThread.start();
-        this.logger.info("...handler thread(s) initiated...");
+        int cnt = 0;
+        for (Thread handlr : this.handlerThreads.values()) {
+        	handlr.start();
+            this.logger.info("...handler thread " + cnt + " initiated...");
+            cnt++;
+        }
         
         this.writeThread.setName(readName);
         this.writeThread.setDaemon(false);
@@ -351,7 +386,35 @@ public class LatticeServer implements Runnable {
          */
         this.logger.info("...NIOServer started!");
     }
-
+    
+    private void setupHandlers() {
+    	for (int i = 0; i < this.handlerPoolSize; i++) {
+    		HandlerRunnable runn;
+			try {
+				runn = new HandlerRunnable(this);
+	    		Thread handlerThread = new Thread(runn);
+	    		handlerThread.setName("messageHandler-" + this.myport + "-" + i);
+	    		handlerThread.setDaemon(false);
+	    		this.handlerPool.add(runn);
+	    		this.handlerThreads.put(runn, handlerThread);
+			} catch (InstantiationException | IllegalAccessException exc) {
+				// TODO handle exception
+			}
+    	}
+        
+    }
+    
+    private boolean checkHandlers() {
+    	boolean ret = false;
+    	for (Thread thread : this.handlerThreads.values()) {
+    		if (thread.isAlive()) {
+    			ret = true;
+    			break;
+    		}
+    	}
+    	return ret;
+    }
+    
     /**
      * Gracefully stop accepting new connections.
      * @throws IOException 
@@ -359,9 +422,8 @@ public class LatticeServer implements Runnable {
     public synchronized void stop() {
     	if (!this.isRunning) return;
         this.isRunning = false;
-        this.logger.info("Shutdown initiated...");
-        this.logger.info("waiting for threads...");
-        while(this.hdlrThread.isAlive() || this.readThread.isAlive() || this.writeThread.isAlive()) {
+        this.logger.info("Shutdown initiated...waiting for threads...");
+        while(checkHandlers() || this.readThread.isAlive() || this.writeThread.isAlive()) {
         	Thread.yield();
         }
         this.doMainLoop = false;
@@ -384,7 +446,8 @@ public class LatticeServer implements Runnable {
         this.ssc = null;
         this.runThread = null;
         this.readThread = null;
-        this.hdlrThread = null;
+        this.handlerThreads.clear();
+        this.handlerPool.clear();
         this.writeThread = null;
         this.isInited = false;
         this.logger.info("Shutdown complete!");
