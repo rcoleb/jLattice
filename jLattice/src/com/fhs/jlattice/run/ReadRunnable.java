@@ -65,17 +65,16 @@ public final class ReadRunnable implements Runnable {
 	                    readBytes = sc.read(buf);
 	                    if (readBytes <= 0) {
 	                    	break;
-	                    } else {
-		                    // if we've read fewer bytes than allocated, create a smaller buffer and set as the original buffer
-		                    // also, we've reached the end of the stream at this point
-		                    if (readBytes < this.myServer.getReadBufferSize()) {
-		                        ByteBuffer buf2 = ByteBuffer.allocate(readBytes);
-		                        buf2.put((ByteBuffer) buf.flip());
-		                        buf = buf2;
-		                    }
-		                    // add backing array to list of read byte[] arrays
-		                    buffers.add((byte[]) buf.flip().array());
 	                    }
+						// if we've read fewer bytes than allocated, create a smaller buffer and set as the original buffer
+						// also, we've reached the end of the stream at this point
+						if (readBytes < this.myServer.getReadBufferSize()) {
+						    ByteBuffer buf2 = ByteBuffer.allocate(readBytes);
+						    buf2.put((ByteBuffer) buf.flip());
+						    buf = buf2;
+						}
+						// add backing array to list of read byte[] arrays
+						buffers.add((byte[]) buf.flip().array());
 	                } catch (IOException e) {
 	                    this.myServer.getExceptionHandler().handleReadException(this.myServer, key, e);
 	                }
