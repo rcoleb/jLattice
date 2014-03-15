@@ -18,30 +18,31 @@ import com.fhs.jlattice.you.impl.Response;
 public class HandlerRunnable implements Runnable {
     
     private static final int POLL_WAIT = 500;
-    private static final Object MSG_LOCK = new Object();
-    
     /**
      * Containing NIOServer
      */
     private LatticeServer myServer;
     
     private MessageHandler handler;
-    private String handlerName;
     
     private volatile boolean killFlag = false;
     private volatile boolean isDead = false;
+    private final int ID;
+    private final String name;
     
     Logger logger = LogManager.getLogger();
     /**
      * 
      * @param server
+     * @param id 
      * @throws IllegalAccessException 
      * @throws InstantiationException 
      */
-    public HandlerRunnable(LatticeServer server) throws InstantiationException, IllegalAccessException { 
+    public HandlerRunnable(LatticeServer server, int id) throws InstantiationException, IllegalAccessException {
+    	this.ID = id;
     	this.myServer = server; 
     	this.handler = server.getMessageHandlerClass().newInstance();
-    	this.handlerName = this.handler.getClass().getName();
+    	this.name = this.handler.getClass().getName();
 	}
     
     /**
@@ -64,24 +65,12 @@ public class HandlerRunnable implements Runnable {
         while(this.myServer.isRunning() && !this.killFlag) {
         	Message msg = null;
 			try {
-				// lock, so that we'll never peek, get scooped, and end up waiting forever for take()  
-//				synchronized(MSG_LOCK) {
-//					msg = this.myServer.getMessageQueue().peek();
-//					if (msg == null) {
-//		            	try {
-//		            		synchronized(Thread.currentThread()) {
-//		            			Thread.currentThread().wait(POLL_WAIT);
-//		            		}
-//						} catch (InterruptedException exc) {
-//							// do nothing
-//						}
-//						continue;
-//					}
-					msg = this.myServer.getMessageQueue().take();
-//				}
+				// there's no point taking up cycles polling if we can wait for a signal
+				msg = this.myServer.getMessageQueue().take();
 			} catch (InterruptedException exc) {
 				// nothing
 			}
+			// Gotta cover our bases:
 			if (msg == null) {
             	try {
             		synchronized(Thread.currentThread()) {
@@ -93,10 +82,11 @@ public class HandlerRunnable implements Runnable {
 				continue;
 			}
 	        
+			// TODO pre-processing?
 			Response<?> retObj = this.handler.messageRecieved(msg);
-	        // TODO post-processing? [for that matter, what about pre-processing?]
+	        // TODO post-processing?
 	        
-	        this.logger.info("Message object processed by " + this.handlerName + "; response received for client " + ((KeyAttachment)msg.key.attachment()).remoteAddr);
+	        this.logger.info("Message processed by <" + this.name + "_"+this.ID+ "> for client " + ((KeyAttachment)msg.key.attachment()).remoteAddr);
 	        ((KeyAttachment)msg.key.attachment()).response = retObj;
 	        // re-register key for a WRITE operation and attach return object
         	SelectionKey oldKey = msg.key;
@@ -105,11 +95,13 @@ public class HandlerRunnable implements Runnable {
 	            // update message to reflect new key
 	            msg.key = retKey;
 	            msg.key.attach(oldKey.attachment());
+	            // let it know there's something to do!
 	            this.myServer.getSelector().wakeup();
 	        } catch (ClosedChannelException e) {
 	            this.myServer.getExceptionHandler().handleClosedChannelException(this.myServer, oldKey, e);
 	        }
         }
+        // aaaaaand we're done, forever
         this.isDead = true;
 	}
 
