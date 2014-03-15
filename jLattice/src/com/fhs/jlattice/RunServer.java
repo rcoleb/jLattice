@@ -11,5 +11,6 @@ public class RunServer {
 //        serv.setMessageHandler(new MessageHandler.HelloWorldMessageHandler());
         serv.init();
         serv.run();
+        serv.enableConsole();
     }
 }

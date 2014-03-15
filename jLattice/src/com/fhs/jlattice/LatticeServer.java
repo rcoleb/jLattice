@@ -79,15 +79,15 @@ public class LatticeServer implements Runnable {
     /**
      * Read event queue
      */
-    private BlockingQueue<SelectionKey> rKQ = new LinkedBlockingQueue<>();
+    private BlockingQueue<SelectionKey> rKQ;
     /**
      * Message Queue, entries are messages waiting to be processed by a handler
      */
-    private BlockingQueue<Message> mKQ = new LinkedBlockingQueue<>();
+    private BlockingQueue<Message> mKQ;
     /**
      * Write event queue
      */
-    private BlockingQueue<SelectionKey> wKQ = new LinkedBlockingQueue<>();
+    private BlockingQueue<SelectionKey> wKQ;
     /**
      * Primary Selector thread
      */
@@ -297,6 +297,9 @@ public class LatticeServer implements Runnable {
      */
     public void init() {
         if (this.isInited) return;
+        rKQ = new LinkedBlockingQueue<>();
+        mKQ = new LinkedBlockingQueue<>();
+        wKQ = new LinkedBlockingQueue<>();
         try {
 			this.selector = Selector.open();
 	        this.ssc = ServerSocketChannel.open();
@@ -345,7 +348,6 @@ public class LatticeServer implements Runnable {
      */
     @Override
     public synchronized void run() {
-    	System.out.println("run");
     	this.doMainLoop = true;
     	this.isRunning = true;
         this.logger.info("NIOServer start initiated...");
@@ -415,6 +417,23 @@ public class LatticeServer implements Runnable {
     	return ret;
     }
     
+    private void doInterrupt() {
+    	if (runThread.isAlive()) {
+    		runThread.interrupt();
+    	}
+    	for (Thread thread : this.handlerThreads.values()) {
+    		if (thread.isAlive()) {
+    			thread.interrupt();
+    		}
+    	}
+    	if (writeThread.isAlive()) {
+    		writeThread.interrupt();
+    	}
+    	if (readThread.isAlive()) {
+    		readThread.interrupt();
+    	}
+    }
+    
     /**
      * Gracefully stop accepting new connections.
      * @throws IOException 
@@ -424,6 +443,7 @@ public class LatticeServer implements Runnable {
         this.isRunning = false;
         this.logger.info("Shutdown initiated...waiting for threads...");
         while(checkHandlers() || this.readThread.isAlive() || this.writeThread.isAlive()) {
+        	doInterrupt();
         	Thread.yield();
         }
         this.doMainLoop = false;

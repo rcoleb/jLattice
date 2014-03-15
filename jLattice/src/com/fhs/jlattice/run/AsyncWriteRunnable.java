@@ -44,7 +44,7 @@ public final class AsyncWriteRunnable implements Runnable {
     
     Logger logger = LogManager.getLogger();
     
-    private static final int POLL_WAIT = 1000;
+    private static final int POLL_WAIT = 500;
     
     /**
      * 

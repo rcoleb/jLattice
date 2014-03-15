@@ -17,7 +17,7 @@ import com.fhs.jlattice.you.impl.Response;
  */
 public class HandlerRunnable implements Runnable {
     
-    private static final int POLL_WAIT = 3000;
+    private static final int POLL_WAIT = 500;
     private static final Object MSG_LOCK = new Object();
     
     /**
@@ -26,6 +26,7 @@ public class HandlerRunnable implements Runnable {
     private LatticeServer myServer;
     
     private MessageHandler handler;
+    private String handlerName;
     
     private volatile boolean killFlag = false;
     private volatile boolean isDead = false;
@@ -40,6 +41,7 @@ public class HandlerRunnable implements Runnable {
     public HandlerRunnable(LatticeServer server) throws InstantiationException, IllegalAccessException { 
     	this.myServer = server; 
     	this.handler = server.getMessageHandlerClass().newInstance();
+    	this.handlerName = this.handler.getClass().getName();
 	}
     
     /**
@@ -63,20 +65,20 @@ public class HandlerRunnable implements Runnable {
         	Message msg = null;
 			try {
 				// lock, so that we'll never peek, get scooped, and end up waiting forever for take()  
-				synchronized(MSG_LOCK) {
-					msg = this.myServer.getMessageQueue().peek();
-					if (msg == null) {
-		            	try {
-		            		synchronized(Thread.currentThread()) {
-		            			Thread.currentThread().wait(POLL_WAIT);
-		            		}
-						} catch (InterruptedException exc) {
-							// do nothing
-						}
-						continue;
-					}
+//				synchronized(MSG_LOCK) {
+//					msg = this.myServer.getMessageQueue().peek();
+//					if (msg == null) {
+//		            	try {
+//		            		synchronized(Thread.currentThread()) {
+//		            			Thread.currentThread().wait(POLL_WAIT);
+//		            		}
+//						} catch (InterruptedException exc) {
+//							// do nothing
+//						}
+//						continue;
+//					}
 					msg = this.myServer.getMessageQueue().take();
-				}
+//				}
 			} catch (InterruptedException exc) {
 				// nothing
 			}
@@ -94,7 +96,7 @@ public class HandlerRunnable implements Runnable {
 			Response<?> retObj = this.handler.messageRecieved(msg);
 	        // TODO post-processing? [for that matter, what about pre-processing?]
 	        
-	        this.logger.info("Message object processed by MessageHandler; response received for client " + ((KeyAttachment)msg.key.attachment()).remoteAddr);
+	        this.logger.info("Message object processed by " + this.handlerName + "; response received for client " + ((KeyAttachment)msg.key.attachment()).remoteAddr);
 	        ((KeyAttachment)msg.key.attachment()).response = retObj;
 	        // re-register key for a WRITE operation and attach return object
         	SelectionKey oldKey = msg.key;

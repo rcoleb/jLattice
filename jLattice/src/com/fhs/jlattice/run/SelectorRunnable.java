@@ -22,7 +22,7 @@ public final class SelectorRunnable implements Runnable {
      */
     private LatticeServer myServe;
     private Logger logger = LogManager.getLogger();
-    private static final int SELECTOR_SLEEP = 3000; // 3 seconds
+    private static final int SELECTOR_SLEEP = 500;
     /**
      * 
      * @param server
@@ -41,12 +41,21 @@ public final class SelectorRunnable implements Runnable {
         while(this.myServe.doMainLoop()) {
             int evts;
             try {
-                evts = this.myServe.getSelector().select(SELECTOR_SLEEP);//selectNow();
+                evts = this.myServe.getSelector().select();//selectNow();
             } catch (IOException e) {
                 this.myServe.getExceptionHandler().handleSelectException(this.myServe, e);
                 continue;
             }
-            if (evts == 0) continue;
+            if (evts == 0)  {
+            	try {
+            		synchronized(Thread.currentThread()) {
+            			Thread.currentThread().wait(SELECTOR_SLEEP);
+            		}
+				} catch (InterruptedException exc) {
+					// do nothing
+				}
+            	continue;
+            }
             Set<SelectionKey> selectedKeys = this.myServe.getSelector().selectedKeys();
             Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
             while(keyIterator.hasNext()) {
