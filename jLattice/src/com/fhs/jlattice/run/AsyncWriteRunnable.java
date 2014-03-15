@@ -56,8 +56,17 @@ public final class AsyncWriteRunnable implements Runnable {
     public void run() {
     	ArrayList<SelectionKey> batch = new ArrayList<>();
         while(this.myServe.isRunning()) {
-        	batch = new ArrayList<>(this.myServe.getWriteQueue().size());
-        	int count = this.myServe.getWriteQueue().drainTo(batch);
+        	int elemCount = this.myServe.getWriteQueue().size();
+        	batch = new ArrayList<>(elemCount + 75); // add magic# 75 for good measure
+        	// TODO analyze draining - possibly better to limit max drain?  
+        	// does it really matter though? - we re-register anyway if the response is too large
+        	// ahh, but that could be an issue, especially since we only have one write consumer:
+        	// if the queue is huge, we may write the beginning of a message, and then wait a relatively
+        	// long time before we write the rest of the message.
+        	// SO: options are (a) limit queue; (b) multiple write consumers [tricky, have to manage socket write sync?]
+        	// I'm thinking (a) for now, but I'll sleep on it...for a while
+        	int count = this.myServe.getWriteQueue().drainTo(batch, elemCount); // never drain more than we expected
+        	
         	if (count == 0) {
             	try {
             		synchronized(Thread.currentThread()) {
@@ -160,6 +169,7 @@ public final class AsyncWriteRunnable implements Runnable {
     	if (end < attach.encodedResp.length) {
     		attach.writeMarker = end;
             try {
+            	// TODO Log re-register key
 				/*SelectionKey retKey = */sc.register(this.myServe.getSelector(), SelectionKey.OP_WRITE, attach);
 			} catch (ClosedChannelException exc) {
                 this.myServe.getExceptionHandler().handleClosedChannelException(this.myServe, key, exc);

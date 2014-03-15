@@ -54,6 +54,7 @@ public final class ReadRunnable implements Runnable {
         		continue;
         	}
         	for (SelectionKey key : batch) {
+        		// TODO MOOOOORRRREEE LOGGGINNNNGGGGGGGGGGG
 	            @SuppressWarnings("resource")
 				SocketChannel sc = (SocketChannel) key.channel();
 	            int readBytes = -2;

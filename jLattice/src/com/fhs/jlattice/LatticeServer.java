@@ -34,7 +34,7 @@ import com.fhs.niosrv.impl.hdlr.EchoMessageHandler;
  * TODO MAJOR Add custom uncaughtExceptionHandler to system
  *
  */
-public class LatticeServer implements Runnable {
+public class LatticeServer {
     /** Default port number */
     private static final int DEF_PORT = 12380;
     /** Default read buffer size */
@@ -127,13 +127,6 @@ public class LatticeServer implements Runnable {
      * Constructor
      */
     public LatticeServer() { /**/ }
-    
-    /**
-     * @return run the main select loop
-     */
-    public boolean doMainLoop() {
-    	return this.doMainLoop;
-    }
     
     /**
      * @return isInited
@@ -343,16 +336,15 @@ public class LatticeServer implements Runnable {
     /**
      * Although we override the run method, this class isn't designed (yet) to be run in it's own thread.  It starts sub-threads itself, and then returns.
      */
-    @Override
     public synchronized void run() {
-    	System.out.println("run");
     	this.doMainLoop = true;
     	this.isRunning = true;
         this.logger.info("NIOServer start initiated...");
-    	String runName = "NIOServer-readthread-"+this.myport;
-    	String readName = "NIOServer-writethread-"+this.myport;
-    	String writeName = "NIOServer-runthread-"+this.myport;
+    	String runName = "NIOServer-runthread-"+this.myport;
+    	String readName = "NIOServer-readthread-"+this.myport;
+    	String writeName = "NIOServer-writethread-"+this.myport;
     	
+    	// TODO alter startup order to initialize writeThread first, then handlers, then readthread, then, last, runThread
         this.runThread = new Thread(new SelectorRunnable(this), runName);
         this.readThread = new Thread(new ReadRunnable(this), readName);
         setupHandlers();
@@ -391,7 +383,7 @@ public class LatticeServer implements Runnable {
     	for (int i = 0; i < this.handlerPoolSize; i++) {
     		HandlerRunnable runn;
 			try {
-				runn = new HandlerRunnable(this);
+				runn = new HandlerRunnable(this, i);
 	    		Thread handlerThread = new Thread(runn);
 	    		handlerThread.setName("messageHandler-" + this.myport + "-" + i);
 	    		handlerThread.setDaemon(false);
@@ -416,6 +408,7 @@ public class LatticeServer implements Runnable {
     }
     
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * Gracefully stop accepting new connections.
      * @throws IOException 
      */
@@ -429,15 +422,17 @@ public class LatticeServer implements Runnable {
         this.doMainLoop = false;
         
         try {
-            this.logger.info("stopping main loop thread...");
+            this.logger.info("...stopping main loop thread...");
 			this.runThread.join();
 		} catch (InterruptedException exc1) {
 			// ignore
 		}
 
-        this.logger.info("Closing external ports...");
+        // technically possible for errors to occur if the join() to runThread was interrupted
         try {
+        	this.logger.trace("...closing selector...");
 	        this.selector.close();
+        	this.logger.trace("...closing socket channel...");
 	        this.ssc.close();
         } catch (IOException exc) {
         	this.getExceptionHandler().handleShutdownException(this, exc);
@@ -454,6 +449,7 @@ public class LatticeServer implements Runnable {
     }
     
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * Convenience method to differentiate between a graceful shutdown and a hard destroy.
      */
     public synchronized void destroy() {
@@ -463,6 +459,15 @@ public class LatticeServer implements Runnable {
     }
     
     /**
+	 * <strong>INTERNAL USE ONLY</strong><br />
+	 * @return run the main select loop
+	 */
+	public boolean doMainLoop() {
+		return this.doMainLoop;
+	}
+
+	/**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * Read from the SocketChannel associated with the given SelectionKey
      * 
      * @param key SelectionKey 
@@ -474,6 +479,7 @@ public class LatticeServer implements Runnable {
     }
 
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * @param key SelectionKey
      */
     public void doConnectable(SelectionKey key) {
@@ -490,6 +496,7 @@ public class LatticeServer implements Runnable {
     }
 
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * Remove key from Selector, then add to write queue. This method, and the write-queue consumer-thread, assumes that the message to be written is attached to the key, and will be retrieved with
      * <code>key.attachment()</code>.
      * 
@@ -502,6 +509,7 @@ public class LatticeServer implements Runnable {
     }
 
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * Close a connection
      * 
      * @param key
@@ -516,6 +524,7 @@ public class LatticeServer implements Runnable {
     }
 
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * @return the ssc
      */
     public ServerSocketChannel getSSC() {
@@ -530,6 +539,7 @@ public class LatticeServer implements Runnable {
     }
     
     /**
+     * <strong>INTERNAL USE ONLY</strong><br />
      * @return the selector
      */
     public Selector getSelector() {

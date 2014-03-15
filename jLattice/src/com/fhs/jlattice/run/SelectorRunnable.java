@@ -54,8 +54,8 @@ public final class SelectorRunnable implements Runnable {
                 keyIterator.remove();
                 
                 // use boolean methods instead of bitwise OR-ing with interestOps() -- cuz I'm lazy and boolean forms hurt
-                // only accept new connections if the server is running - we'll process everything while the server is initialized,
-                // in case there are trailing reads/handlers/writes
+                // only accept new connections if the server is running - we'll process everything while 
+                // the server is initialized, in case there are trailing reads/handlers/writes
                 if(key.isAcceptable() && this.myServe.isRunning()) {
                     // a connection was accepted by a ServerSocketChannel
                     SocketChannel newConnection;
